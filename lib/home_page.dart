@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:vertical_drag/profile_page_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -31,9 +32,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   onBottomPartTap(){
     setState((){
       if(isAnimationCompleted){
-        _controller!.reverse();
+        _controller!.fling(velocity: -1);
       }else{
-        _controller!.forward();
+        _controller!.fling(velocity: 1);
       }
       isAnimationCompleted = !isAnimationCompleted;
     });
@@ -53,17 +54,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget getWidget(){
+    screenHeight = MediaQuery.of(context).size.height;
     return Stack(
       fit: StackFit.expand,
       children: [
         FractionallySizedBox(
           alignment: Alignment.topCenter,
           heightFactor: _heightFactorAnimation!.value,
-          child: Image.asset("assets/image/steve.jpg",
-            fit: BoxFit.cover,colorBlendMode: BlendMode.hue,color: Colors.black,),
+          child: const ProfilePageView()
         ),
         GestureDetector(
           onTap: onBottomPartTap,
+          onVerticalDragUpdate: _handleVerticalUpdate,
+          onVerticalDragEnd: _handleVerticalEnd,
           child: FractionallySizedBox(
             alignment: Alignment.bottomCenter,
             heightFactor: 1.05 - _heightFactorAnimation!.value,
@@ -77,5 +80,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         )
       ],
     );
+  }
+
+  _handleVerticalUpdate(DragUpdateDetails dragUpdateDetails){
+    double fractionDrag = dragUpdateDetails.primaryDelta!  / screenHeight;
+    _controller!.value = _controller!.value - 5 * fractionDrag;
+  }
+
+  _handleVerticalEnd(DragEndDetails dragEndDetails){
+    if(_controller!.value >= .5){
+      _controller!.fling(velocity: 1);
+    }else{
+      _controller!.fling(velocity: -1);
+    }
   }
 }
